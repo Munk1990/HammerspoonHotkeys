@@ -16,6 +16,7 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 obj.canvas = nil
 obj.timer = nil
+obj.minutes = nil
 
 function obj:init()
     self.canvas = hs.canvas.new({x=0, y=0, w=0, h=0}):show()
@@ -56,8 +57,10 @@ end
 
 function obj:startFor(minutes)
     if obj.timer then
+	obj.minutes = nil
         canvasCleanup()
     else
+        obj.minutes = minutes
         local mainScreen = hs.screen.mainScreen()
         local mainRes = mainScreen:fullFrame()
         obj.canvas:frame({x=mainRes.x, y=mainRes.y, w=mainRes.w, h=22})
@@ -128,4 +131,14 @@ function obj:setProgress(progress, notifystr)
     end
 end
 
+function obj:getProgressString()
+	if obj.minutes then
+        return math.floor(obj.loopCount*obj.minutes) .. " of " .. obj.minutes .. " mins completed."
+	else
+        return "No timer in progress."
+    end
+end
+
 return obj
+
+

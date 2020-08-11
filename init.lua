@@ -212,7 +212,7 @@ end)
 hs.hotkey.bind(hyper, "c", function()
 	local pausetext = 'Resume'
 	if countdownrunning then pausetext = 'Pause' end
-	key, time = hs.dialog.textPrompt('CountDown', 'Enter time to start timer for or pause the previously running timer', "60", 'Start/Stop', pausetext)
+	key, time = hs.dialog.textPrompt('CountDown', CountDown:getProgressString() .. '\n\nEnter time to start timer for or pause the previously running timer', "60", 'Start/Stop', pausetext)
 	if key == 'Start/Stop' then
 		CountDown:startFor(tonumber(time))
 		countdownrunning = true
