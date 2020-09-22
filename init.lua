@@ -1,8 +1,6 @@
 local hyper = {"cmd", "alt", "ctrl"}
 local screensnaps = {0.30, 0.5,0.70}
-local CountDown = hs.loadSpoon('CountDown')
-local countdownrunning = false
-local countdownstarted = false
+local CountDown = hs.loadSpoon('ProductivityTracker')
 ----------------------------------------------------------
 -------------------------Functions------------------------
 ----------------------------------------------------------
@@ -124,6 +122,7 @@ end
 ----------------------------------------------------------
 
 
+
 hs.hotkey.bind(hyper, '/', function()
   local screens = hs.screen.allScreens()
   local screencount = tablelength(screens)
@@ -209,17 +208,35 @@ hs.hotkey.bind(hyper , "Right", function()
   win:setFrame(f)
 end)
 
-hs.hotkey.bind(hyper, "c", function()
-	local pausetext = 'Resume'
-	if countdownrunning then pausetext = 'Pause' end
-	key, time = hs.dialog.textPrompt('CountDown', CountDown:getProgressString() .. '\n\nEnter time to start timer for or pause the previously running timer', "60", 'Start/Stop', pausetext)
+local function launchCountdown() 
+	key, time = hs.dialog.textPrompt('Daily Productivity Tracker'
+                        , CountDown:getProgress() 
+                            .. '\n\nEnter minutes to start the countdown for', "40", 'Start/Stop', 'Cancel')
 	if key == 'Start/Stop' then
 		CountDown:startFor(tonumber(time))
 		countdownrunning = true
-	else
-		CountDown:pauseOrResume()
-		countdownrunning = not countdownrunning
-	end
+    end
+end
+
+
+hs.hotkey.bind({}, 'F10', 
+function()
+  long_press = true 
+  press_timer = hs.timer.delayed.new(0.5, function()
+        if long_press == true then
+            print("long press")
+            long_press = false
+            launchCountdown()
+        end 
+    end)
+  press_timer:start()
+end, 
+function()
+  if long_press == true then
+    print("Short press")
+    long_press = false
+    if CountDown:isTimer() then CountDown:pauseOrResume() else launchCountdown() end
+  end  
 end)
 
 expose_app = hs.expose.new(nil,{onlyActiveApplication=true}) -- show windows for the current application
@@ -284,69 +301,19 @@ hs.hotkey.bind(hyper , "n", function()
 end)
 
 
-hs.hotkey.bind(hyper, 'i', function()
-      local appwin= hs.window.focusedWindow()
-      new_appf = appwin:frame()
-      print(string.format("Screen width %s", new_appf.w))
-end)
 
-hs.hotkey.bind(hyper, "w", function()
-    local appname = 'Wunderlist'
-    local minwidth = 364.0
-	local mainwin = hs.window.focusedWindow()
-    wunderlistpaired = nil
-
-    if mainwin ~= nil and mainwin:application():title() == appname then
-      print("Minimizing wunderlist")
-      mainwin:minimize(20)
-      wun_paired_w:setFrame(wun_paired_f)
-      wun_paired_w:focus()
-    elseif mainwin~=nil and mainwin:application():title() ~= appname then
-      wun_paired_f = mainwin:frame()
-      wun_paired_w = mainwin
-      local appframe = mainwin:frame()
-      hs.application.launchOrFocus(appname)
-      local appwin= hs.window.focusedWindow()
-      local appf = appwin:frame()
-      local screen = appwin:screen()
-      local max = screen:frame()
-      print(string.format("Setting window config for %s", appwin:application():title()))
-      spaceonright = max.w - (appframe.x + appframe.w)
-      if( spaceonright <= minwidth )then
-        spaceonleft = appframe.x - max.x
-        if(spaceonleft >= minwidth)then
-          appf.x = max.x
-          appf.y = max.y
-          appf.w = appframe.x-max.x
-          appf.h = appframe.h
-        else -- no space to fit, so resize application
-          appf.x = max.w - minwidth
-          appf.y = appframe.y
-          appf.w = minwidth
-          appf.h = appframe.h
-          appwin:setFrame(appf)
-          appframe.w = max.w - (appframe.x - max.x) - minwidth
-          mainwin:setFrame(appframe)
-        end
-      else
-        appf.x = appframe.x + appframe.w
-        appf.y = appframe.y
-        appf.w = max.w - appframe.x - appframe.w
-        appf.h = appframe.h
-        appwin:setFrame(appf)
-      end
-    else
-      hs.application.launchOrFocus(appname)
-    end
-end)
-
+--Send Time to input
 hs.hotkey.bind(hyper, 't', function()
     hs.eventtap.keyStrokes(os.date("%I:%M %p"))
 end)
 
+-- Send Date to input
 hs.hotkey.bind(hyper, 'd', function()
     hs.eventtap.keyStrokes(os.date("%b %d, %Y"))
 end)
+
+
+
 
 ----------------------------------------------------------
 -------------------------Initiations----------------------
